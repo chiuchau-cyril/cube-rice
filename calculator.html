@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 全自動廚房商業模型計算器</title>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --secondary: #004e89;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --bg: #1a1a2e;
+            --card: #16213e;
+            --text: #eaeaea;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+        
+        .value-display {
+            min-width: 80px;
+            text-align: right;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #0f0f23;
+            color: var(--text);
+            font-size: 1em;
+        }
+        
+        .results {
+            background: linear-gradient(135deg, var(--card), #1a1a3e);
+            border: 2px solid var(--primary);
+        }
+        
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .result-row:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            color: #aaa;
+        }
+        
+        .result-value {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .result-value.positive {
+            color: var(--success);
+        }
+        
+        .result-value.negative {
+            color: var(--danger);
+        }
+        
+        .result-value.highlight {
+            color: var(--primary);
+            font-size: 1.3em;
+        }
+        
+        .meter {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .meter-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+        
+        .scenario-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .scenario-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .scenario-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .scenario-btn.conservative {
+            background: #3498db;
+            color: white;
+        }
+        
+        .scenario-btn.baseline {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .scenario-btn.optimistic {
+            background: var(--success);
+            color: white;
+        }
+        
+        .menu-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.85em;
+        }
+        
+        .menu-table th, .menu-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        
+        .menu-table th {
+            color: var(--primary);
+        }
+        
+        .chart-container {
+            margin-top: 20px;
+        }
+        
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .bar-label {
+            width: 80px;
+            font-size: 0.8em;
+            color: #aaa;
+        }
+        
+        .bar {
+            flex: 1;
+            height: 24px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 0.8em;
+            color: white;
+            transition: width 0.3s ease;
+        }
+        
+        .breakeven-indicator {
+            text-align: center;
+            padding: 20px;
+            margin-top: 15px;
+            border-radius: 8px;
+        }
+        
+        .breakeven-indicator.profitable {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid var(--success);
+        }
+        
+        .breakeven-indicator.loss {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid var(--danger);
+        }
+        
+        .emoji-big {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 全自動廚房商業模型計算器</h1>
+        
+        <div class="scenario-buttons">
+            <button class="scenario-btn conservative" onclick="loadScenario('conservative')">📉 保守情境</button>
+            <button class="scenario-btn baseline" onclick="loadScenario('baseline')">📊 基準情境</button>
+            <button class="scenario-btn optimistic" onclick="loadScenario('optimistic')">📈 樂觀情境</button>
+            <button class="scenario-btn" style="background:#9b59b6; color:white;" onclick="loadScenario('fullAuto24h')">🤖 24H全自動</button>
+        </div>
+        
+        <div class="grid">
+            <!-- 地點參數 -->
+            <div class="card">
+                <h2>🏠 地點參數</h2>
+                
+                <div class="input-group">
+                    <label>區域選擇</label>
+                    <select id="locationArea" onchange="updateLocationData()">
+                        <optgroup label="新北市">
+                            <option value="shulin">樹林區（工業區）</option>
+                            <option value="tucheng">土城區（工業區）</option>
+                            <option value="wugu">五股區（工業區）</option>
+                            <option value="xinzhuang">新莊區（混合區）</option>
+                            <option value="sanchong">三重區（混合區）</option>
+                            <option value="zhonghe">中和區（住宅/商業）</option>
+                        </optgroup>
+                        <optgroup label="桃園市">
+                            <option value="taoyuan-ind">桃園工業區</option>
+                            <option value="guishan">龜山區（工業）</option>
+                        </optgroup>
+                        <optgroup label="台北市">
+                            <option value="neihu">內湖區（科技園區）</option>
+                            <option value="nangang">南港區（軟體園區）</option>
+                        </optgroup>
+                        <optgroup label="自訂">
+                            <option value="custom">自訂租金...</option>
+                        </optgroup>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>空間類型</label>
+                    <select id="spaceType" onchange="updateLocationData()">
+                        <option value="container">貨櫃改裝（6-15坪）</option>
+                        <option value="small-factory">小型廠房隔間（15-30坪）</option>
+                        <option value="standalone">獨立小廠房（30-50坪）</option>
+                        <option value="custom-space">自訂坪數...</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>坪數</label>
+                    <div class="input-row">
+                        <input type="range" id="space" min="6" max="50" value="12" onchange="calculate()">
+                        <span class="value-display"><span id="spaceValue">12</span> 坪</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>月租金/坪 <span id="rentSource" style="font-size:0.8em; color:#888;"></span></label>
+                    <div class="input-row">
+                        <input type="range" id="rentPerPing" min="400" max="4000" step="50" value="700" onchange="calculate()">
+                        <span class="value-display">$<span id="rentPerPingValue">700</span></span>
+                    </div>
+                </div>
+                
+                <div class="location-info" id="locationInfo" style="background:#0f0f23; padding:10px; border-radius:6px; margin-top:10px; font-size:0.85em;">
+                    <div style="color:var(--primary); margin-bottom:5px;">📍 樹林區行情參考</div>
+                    <div style="color:#aaa;">小型空間: $600-800/坪</div>
+                    <div style="color:#aaa;">預估月租: <span id="estimatedRent">$7,200-9,600</span></div>
+                </div>
+            </div>
+            
+            <!-- 產能參數 -->
+            <div class="card">
+                <h2>🔧 產能參數</h2>
+                
+                <div class="input-group">
+                    <label>自動炒鍋數量</label>
+                    <div class="input-row">
+                        <input type="range" id="wokCount" min="1" max="6" value="3" onchange="calculate()">
+                        <span class="value-display"><span id="wokCountValue">3</span> 台</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>單鍋出餐時間</label>
+                    <div class="input-row">
+                        <input type="range" id="cookTime" min="2" max="8" step="0.5" value="4" onchange="calculate()">
+                        <span class="value-display"><span id="cookTimeValue">4</span> 分鐘</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>日營業時數 🤖</label>
+                    <div class="input-row">
+                        <input type="range" id="hoursPerDay" min="6" max="24" value="12" onchange="calculate()">
+                        <span class="value-display"><span id="hoursPerDayValue">12</span> 小時</span>
+                    </div>
+                    <div id="hours24Note" style="font-size:0.8em; color:#888; margin-top:4px;"></div>
+                </div>
+                
+                <div class="input-group">
+                    <label>產能利用率</label>
+                    <div class="input-row">
+                        <input type="range" id="utilization" min="20" max="90" value="50" onchange="calculate()">
+                        <span class="value-display"><span id="utilizationValue">50</span>%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 銷售參數 -->
+            <div class="card">
+                <h2>💰 銷售參數</h2>
+                
+                <div class="input-group">
+                    <label>定價策略</label>
+                    <select id="pricingStrategy" onchange="updatePricing()">
+                        <option value="budget">平價策略：$69 單點</option>
+                        <option value="competitive" selected>競爭策略：$79 單點</option>
+                        <option value="value">價值策略：$89 單點</option>
+                        <option value="premium">品牌策略：$99 單點</option>
+                        <option value="custom">自訂...</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>平均客單價（含套餐效應）</label>
+                    <div class="input-row">
+                        <input type="range" id="avgPrice" min="60" max="150" step="1" value="95" onchange="calculate()">
+                        <span class="value-display">$<span id="avgPriceValue">95</span></span>
+                    </div>
+                    <div id="pricingNote" style="font-size:0.8em; color:#888; margin-top:4px;">
+                        💡 單點 $79 + 套餐 $99 → 平均約 $95
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>日均訂單數</label>
+                    <div class="input-row">
+                        <input type="range" id="dailyOrders" min="20" max="300" value="120" onchange="calculate()">
+                        <span class="value-display"><span id="dailyOrdersValue">120</span> 單</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>外送平台佔比</label>
+                    <div class="input-row">
+                        <input type="range" id="deliveryRatio" min="50" max="100" value="90" onchange="calculate()">
+                        <span class="value-display"><span id="deliveryRatioValue">90</span>%</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>月營業天數</label>
+                    <div class="input-row">
+                        <input type="range" id="daysPerMonth" min="20" max="30" value="30" onchange="calculate()">
+                        <span class="value-display"><span id="daysPerMonthValue">30</span> 天</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成本參數 -->
+            <div class="card">
+                <h2>📦 成本參數</h2>
+                
+                <div class="input-group">
+                    <label>食材成本率（標準化方塊食材）</label>
+                    <div class="input-row">
+                        <input type="range" id="foodCostRatio" min="15" max="35" value="20" onchange="calculate()">
+                        <span class="value-display"><span id="foodCostRatioValue">20</span>%</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>平台抽成</label>
+                    <div class="input-row">
+                        <input type="range" id="platformFee" min="20" max="35" value="30" onchange="calculate()">
+                        <span class="value-display"><span id="platformFeeValue">30</span>%</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>包材成本/單</label>
+                    <div class="input-row">
+                        <input type="range" id="packagingCost" min="5" max="15" value="6" onchange="calculate()">
+                        <span class="value-display">$<span id="packagingCostValue">6</span></span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>設備總投資（含 IoT）</label>
+                    <div class="input-row">
+                        <input type="range" id="capex" min="1000000" max="4000000" step="100000" value="1900000" onchange="calculate()">
+                        <span class="value-display">$<span id="capexValue">190萬</span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 行銷參數 -->
+            <div class="card">
+                <h2>📣 品牌與行銷</h2>
+                
+                <div class="input-group">
+                    <label>品牌建立費（一次性）</label>
+                    <div class="input-row">
+                        <input type="range" id="brandingCost" min="50000" max="300000" step="10000" value="120000" onchange="calculate()">
+                        <span class="value-display">$<span id="brandingCostValue">12萬</span></span>
+                    </div>
+                    <div style="font-size:0.75em; color:#666; margin-top:4px;">Logo、包裝設計、攝影、文宣</div>
+                </div>
+                
+                <div class="input-group">
+                    <label>月行銷預算</label>
+                    <div class="input-row">
+                        <input type="range" id="monthlyMarketing" min="10000" max="100000" step="5000" value="45000" onchange="calculate()">
+                        <span class="value-display">$<span id="monthlyMarketingValue">4.5萬</span></span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>行銷階段</label>
+                    <select id="marketingPhase" onchange="updateMarketingPhase()">
+                        <option value="launch">🚀 開幕期（衝量）$6萬/月</option>
+                        <option value="growth" selected>📈 成長期（優化）$4.5萬/月</option>
+                        <option value="stable">🏠 穩定期（維持）$3萬/月</option>
+                        <option value="custom">⚙️ 自訂</option>
+                    </select>
+                </div>
+                
+                <div class="marketing-breakdown" style="background:#0f0f23; padding:10px; border-radius:6px; margin-top:10px; font-size:0.8em;">
+                    <div style="color:var(--primary); margin-bottom:5px;">📊 行銷預算分配</div>
+                    <div style="color:#aaa;">• 平台廣告：40%</div>
+                    <div style="color:#aaa;">• FB/Google：30%</div>
+                    <div style="color:#aaa;">• 折扣補貼：20%</div>
+                    <div style="color:#aaa;">• 社群/網紅：10%</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 結果區 -->
+        <div class="grid">
+            <div class="card results">
+                <h2>📊 月度損益</h2>
+                
+                <div class="result-row">
+                    <span class="result-label">月營收</span>
+                    <span class="result-value highlight" id="monthlyRevenue">$300,000</span>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="bar-chart">
+                        <div class="bar-row">
+                            <span class="bar-label">食材</span>
+                            <div class="bar"><div class="bar-fill" id="foodCostBar" style="width: 30%; background: #e74c3c;">$90,000</div></div>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">平台抽成</span>
+                            <div class="bar"><div class="bar-fill" id="platformFeeBar" style="width: 27%; background: #f39c12;">$81,000</div></div>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">包材</span>
+                            <div class="bar"><div class="bar-fill" id="packagingBar" style="width: 8%; background: #9b59b6;">$24,000</div></div>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">固定成本</span>
+                            <div class="bar"><div class="bar-fill" id="fixedCostBar" style="width: 30%; background: #3498db;">$89,900</div></div>
+                        </div>
+                        <div class="bar-row">
+                            <span class="bar-label">淨利</span>
+                            <div class="bar"><div class="bar-fill" id="profitBar" style="width: 15%; background: #2ecc71;">$15,100</div></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="result-row" style="margin-top: 15px;">
+                    <span class="result-label">毛利</span>
+                    <span class="result-value" id="grossProfit">$105,000</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">固定成本</span>
+                    <span class="result-value" id="fixedCosts">$89,900</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">月淨利</span>
+                    <span class="result-value" id="netProfit">$15,100</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">淨利率</span>
+                    <span class="result-value" id="profitMargin">5.0%</span>
+                </div>
+            </div>
+            
+            <div class="card results">
+                <h2>🎯 關鍵指標</h2>
+                
+                <div class="result-row">
+                    <span class="result-label">理論最大日產能</span>
+                    <span class="result-value" id="maxCapacity">540 單</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">實際產能利用</span>
+                    <span class="result-value" id="actualUtilization">18.5%</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">損益平衡日單量</span>
+                    <span class="result-value highlight" id="breakeven">94 單</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">每單淨利貢獻</span>
+                    <span class="result-value" id="contributionPerOrder">$32</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">預估回本期</span>
+                    <span class="result-value highlight" id="paybackPeriod">171 個月</span>
+                </div>
+                
+                <div class="breakeven-indicator" id="breakevenIndicator">
+                    <div class="emoji-big">📈</div>
+                    <div id="breakevenMessage">目前在損益平衡之上</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 菜單參考 -->
+        <div class="card" style="margin-top: 20px;">
+            <h2>🍳 建議菜單結構（15道）</h2>
+            <table class="menu-table">
+                <thead>
+                    <tr>
+                        <th>品項</th>
+                        <th>建議售價</th>
+                        <th>食材成本</th>
+                        <th>毛利率</th>
+                        <th>出餐時間</th>
+                        <th>自動化難度</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>蛋炒飯</td><td>$70</td><td>$18</td><td>74%</td><td>3min</td><td>⭐</td></tr>
+                    <tr><td>肉絲炒飯</td><td>$85</td><td>$25</td><td>71%</td><td>3min</td><td>⭐</td></tr>
+                    <tr><td>蝦仁炒飯</td><td>$100</td><td>$35</td><td>65%</td><td>3min</td><td>⭐⭐</td></tr>
+                    <tr><td>炒麵</td><td>$75</td><td>$20</td><td>73%</td><td>3.5min</td><td>⭐</td></tr>
+                    <tr><td>炒米粉</td><td>$75</td><td>$20</td><td>73%</td><td>3.5min</td><td>⭐</td></tr>
+                    <tr><td>炒青菜</td><td>$60</td><td>$15</td><td>75%</td><td>2min</td><td>⭐</td></tr>
+                    <tr><td>宮保雞丁飯</td><td>$110</td><td>$32</td><td>71%</td><td>4min</td><td>⭐⭐</td></tr>
+                    <tr><td>三杯雞飯</td><td>$120</td><td>$38</td><td>68%</td><td>4.5min</td><td>⭐⭐</td></tr>
+                    <tr><td>沙茶牛肉飯</td><td>$130</td><td>$45</td><td>65%</td><td>4min</td><td>⭐⭐</td></tr>
+                    <tr><td>麻婆豆腐飯</td><td>$100</td><td>$28</td><td>72%</td><td>3.5min</td><td>⭐⭐</td></tr>
+                    <tr><td>糖醋排骨飯</td><td>$120</td><td>$40</td><td>67%</td><td>4min</td><td>⭐⭐</td></tr>
+                    <tr><td>蒜香肉片飯</td><td>$100</td><td>$30</td><td>70%</td><td>3.5min</td><td>⭐⭐</td></tr>
+                    <tr><td>咖哩雞飯</td><td>$95</td><td>$28</td><td>71%</td><td>3min</td><td>⭐</td></tr>
+                    <tr><td>雙主菜便當</td><td>$150</td><td>$50</td><td>67%</td><td>5min</td><td>⭐⭐</td></tr>
+                    <tr><td>炒飯+湯</td><td>$90</td><td>$25</td><td>72%</td><td>3min</td><td>⭐</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        // 各區域租金行情資料（基於 591 實際數據 2026-01）
+        const locationData = {
+            // 新北市
+            'shulin': {
+                name: '樹林區',
+                type: '工業區',
+                rentRange: { min: 500, max: 800 },
+                avgRent: 650,
+                deliveryDemand: 'medium',
+                dailyOrderEstimate: { min: 50, max: 120 },
+                notes: '乙種工業區，可廠登，近65快速道路',
+                source: '591商用 2026-01'
+            },
+            'tucheng': {
+                name: '土城區',
+                type: '工業區',
+                rentRange: { min: 550, max: 850 },
+                avgRent: 700,
+                deliveryDemand: 'medium-high',
+                dailyOrderEstimate: { min: 60, max: 140 },
+                notes: '頂埔工業區，交通便利',
+                source: '591商用 2026-01'
+            },
+            'wugu': {
+                name: '五股區',
+                type: '工業區',
+                rentRange: { min: 450, max: 700 },
+                avgRent: 580,
+                deliveryDemand: 'medium',
+                dailyOrderEstimate: { min: 40, max: 100 },
+                notes: '五股工業區，租金較低',
+                source: '591商用 2026-01'
+            },
+            'xinzhuang': {
+                name: '新莊區',
+                type: '混合區',
+                rentRange: { min: 800, max: 1500 },
+                avgRent: 1100,
+                deliveryDemand: 'high',
+                dailyOrderEstimate: { min: 80, max: 180 },
+                notes: '人口密集，外送需求高',
+                source: '591商用 2026-01'
+            },
+            'sanchong': {
+                name: '三重區',
+                type: '混合區',
+                rentRange: { min: 900, max: 1800 },
+                avgRent: 1300,
+                deliveryDemand: 'high',
+                dailyOrderEstimate: { min: 100, max: 200 },
+                notes: '捷運沿線，人流密集',
+                source: '591商用 2026-01'
+            },
+            'zhonghe': {
+                name: '中和區',
+                type: '住宅/商業',
+                rentRange: { min: 1000, max: 2000 },
+                avgRent: 1400,
+                deliveryDemand: 'high',
+                dailyOrderEstimate: { min: 90, max: 180 },
+                notes: '住宅密集區，晚餐訂單多',
+                source: '591商用 2026-01'
+            },
+            // 桃園市
+            'taoyuan-ind': {
+                name: '桃園工業區',
+                type: '工業區',
+                rentRange: { min: 400, max: 650 },
+                avgRent: 520,
+                deliveryDemand: 'medium',
+                dailyOrderEstimate: { min: 50, max: 130 },
+                notes: '大型工業區，午餐需求高',
+                source: '估算'
+            },
+            'guishan': {
+                name: '龜山區',
+                type: '工業區',
+                rentRange: { min: 500, max: 800 },
+                avgRent: 650,
+                deliveryDemand: 'medium-high',
+                dailyOrderEstimate: { min: 60, max: 150 },
+                notes: '林口交界，發展中',
+                source: '估算'
+            },
+            // 台北市
+            'neihu': {
+                name: '內湖區',
+                type: '科技園區',
+                rentRange: { min: 1500, max: 3000 },
+                avgRent: 2200,
+                deliveryDemand: 'very-high',
+                dailyOrderEstimate: { min: 120, max: 250 },
+                notes: '科技公司密集，午餐需求爆量',
+                source: '估算'
+            },
+            'nangang': {
+                name: '南港區',
+                type: '軟體園區',
+                rentRange: { min: 1400, max: 2800 },
+                avgRent: 2000,
+                deliveryDemand: 'very-high',
+                dailyOrderEstimate: { min: 100, max: 220 },
+                notes: '軟體園區+展覽館',
+                source: '估算'
+            },
+            'custom': {
+                name: '自訂',
+                type: '自訂',
+                rentRange: { min: 400, max: 4000 },
+                avgRent: 1000,
+                deliveryDemand: 'medium',
+                dailyOrderEstimate: { min: 50, max: 150 },
+                notes: '自行輸入參數',
+                source: '自訂'
+            }
+        };
+        
+        const spaceTypes = {
+            'container': { min: 6, max: 15, default: 10, name: '貨櫃改裝' },
+            'small-factory': { min: 15, max: 30, default: 20, name: '小型廠房隔間' },
+            'standalone': { min: 30, max: 50, default: 40, name: '獨立小廠房' },
+            'custom-space': { min: 6, max: 100, default: 15, name: '自訂' }
+        };
+        
+        function updateLocationData() {
+            const locationId = document.getElementById('locationArea').value;
+            const spaceTypeId = document.getElementById('spaceType').value;
+            const location = locationData[locationId];
+            const spaceType = spaceTypes[spaceTypeId];
+            
+            // 更新坪數範圍
+            const spaceSlider = document.getElementById('space');
+            spaceSlider.min = spaceType.min;
+            spaceSlider.max = spaceType.max;
+            spaceSlider.value = spaceType.default;
+            
+            // 更新租金
+            const rentSlider = document.getElementById('rentPerPing');
+            rentSlider.min = location.rentRange.min;
+            rentSlider.max = location.rentRange.max;
+            rentSlider.value = location.avgRent;
+            
+            // 更新日單量估算
+            const ordersSlider = document.getElementById('dailyOrders');
+            const avgOrders = Math.round((location.dailyOrderEstimate.min + location.dailyOrderEstimate.max) / 2);
+            ordersSlider.value = avgOrders;
+            
+            // 更新資訊顯示
+            const infoDiv = document.getElementById('locationInfo');
+            const space = spaceType.default;
+            const rentLow = space * location.rentRange.min;
+            const rentHigh = space * location.rentRange.max;
+            
+            // 591 連結對照表
+            const links591 = {
+                'shulin': 'https://business.591.com.tw/list?type=1&region=3&section=41&kind=7',
+                'tucheng': 'https://business.591.com.tw/list?type=1&region=3&section=39&kind=7',
+                'wugu': 'https://business.591.com.tw/list?type=1&region=3&section=48&kind=7',
+                'xinzhuang': 'https://business.591.com.tw/list?type=1&region=3&section=44&kind=7',
+                'sanchong': 'https://business.591.com.tw/list?type=1&region=3&section=43&kind=7',
+                'zhonghe': 'https://business.591.com.tw/list?type=1&region=3&section=38&kind=7',
+                'taoyuan-ind': 'https://business.591.com.tw/list?type=1&region=6&kind=7',
+                'guishan': 'https://business.591.com.tw/list?type=1&region=6&section=71&kind=7',
+                'neihu': 'https://business.591.com.tw/list?type=1&region=1&section=11&kind=7',
+                'nangang': 'https://business.591.com.tw/list?type=1&region=1&section=12&kind=7'
+            };
+            
+            const link591 = links591[locationId] || 'https://business.591.com.tw';
+            
+            infoDiv.innerHTML = `
+                <div style="color:var(--primary); margin-bottom:5px;">📍 ${location.name}行情參考</div>
+                <div style="color:#aaa;">租金範圍: $${location.rentRange.min}-${location.rentRange.max}/坪</div>
+                <div style="color:#aaa;">預估月租: $${formatNumber(rentLow)}-${formatNumber(rentHigh)}</div>
+                <div style="color:#aaa;">外送需求: ${getDemandText(location.deliveryDemand)}</div>
+                <div style="color:#aaa;">預估日單: ${location.dailyOrderEstimate.min}-${location.dailyOrderEstimate.max}單</div>
+                <div style="color:#666; font-size:0.85em; margin-top:5px;">💡 ${location.notes}</div>
+                <div style="color:#555; font-size:0.75em;">資料來源: ${location.source}</div>
+                <a href="${link591}" target="_blank" style="display:inline-block; margin-top:8px; padding:6px 12px; background:var(--primary); color:white; border-radius:4px; text-decoration:none; font-size:0.85em;">🔗 在 591 查看實際物件</a>
+            `;
+            
+            document.getElementById('rentSource').textContent = `(${location.name}行情)`;
+            
+            calculate();
+        }
+        
+        function getDemandText(demand) {
+            const demandMap = {
+                'low': '⭐ 低',
+                'medium': '⭐⭐ 中',
+                'medium-high': '⭐⭐⭐ 中高',
+                'high': '⭐⭐⭐⭐ 高',
+                'very-high': '⭐⭐⭐⭐⭐ 極高'
+            };
+            return demandMap[demand] || demand;
+        }
+        
+        // 定價策略
+        const pricingStrategies = {
+            'budget': { single: 69, avg: 85, note: '💡 低價衝量：單點 $69，套餐 $89' },
+            'competitive': { single: 79, avg: 95, note: '💡 競爭定價：單點 $79，套餐 $99' },
+            'value': { single: 89, avg: 105, note: '💡 價值定位：單點 $89，套餐 $109' },
+            'premium': { single: 99, avg: 115, note: '💡 品牌溢價：單點 $99，套餐 $129' },
+            'custom': { single: 0, avg: 0, note: '⚙️ 自訂客單價' }
+        };
+        
+        function updatePricing() {
+            const strategy = document.getElementById('pricingStrategy').value;
+            const priceSlider = document.getElementById('avgPrice');
+            const pricingNote = document.getElementById('pricingNote');
+            
+            if (strategy !== 'custom') {
+                priceSlider.value = pricingStrategies[strategy].avg;
+                pricingNote.textContent = pricingStrategies[strategy].note;
+            } else {
+                pricingNote.textContent = '⚙️ 自行調整客單價';
+            }
+            calculate();
+        }
+        
+        // 行銷階段
+        const marketingPhases = {
+            'launch': 60000,
+            'growth': 45000,
+            'stable': 30000,
+            'custom': null
+        };
+        
+        function updateMarketingPhase() {
+            const phase = document.getElementById('marketingPhase').value;
+            const marketingSlider = document.getElementById('monthlyMarketing');
+            
+            if (phase !== 'custom' && marketingPhases[phase]) {
+                marketingSlider.value = marketingPhases[phase];
+            }
+            calculate();
+        }
+        
+        const scenarios = {
+            conservative: {
+                location: 'shulin',
+                spaceType: 'small-factory',
+                dailyOrders: 100,
+                avgPrice: 85,
+                deliveryRatio: 95,
+                foodCostRatio: 22,
+                utilization: 30,
+                wokCount: 3,
+                hoursPerDay: 16,
+                capex: 1900000,
+                brandingCost: 80000,
+                monthlyMarketing: 30000
+            },
+            baseline: {
+                location: 'shulin',
+                spaceType: 'small-factory',
+                dailyOrders: 150,
+                avgPrice: 95,
+                deliveryRatio: 90,
+                foodCostRatio: 20,
+                utilization: 50,
+                wokCount: 3,
+                hoursPerDay: 20,
+                capex: 1900000,
+                brandingCost: 120000,
+                monthlyMarketing: 45000
+            },
+            optimistic: {
+                location: 'xinzhuang',
+                spaceType: 'small-factory',
+                dailyOrders: 200,
+                avgPrice: 100,
+                deliveryRatio: 85,
+                foodCostRatio: 20,
+                utilization: 60,
+                wokCount: 3,
+                hoursPerDay: 22,
+                capex: 2100000,
+                brandingCost: 150000,
+                monthlyMarketing: 50000
+            },
+            fullAuto24h: {
+                location: 'shulin',
+                spaceType: 'small-factory',
+                dailyOrders: 250,
+                avgPrice: 95,
+                deliveryRatio: 85,
+                foodCostRatio: 20,
+                utilization: 55,
+                wokCount: 3,
+                hoursPerDay: 24,
+                capex: 1900000,
+                brandingCost: 120000,
+                monthlyMarketing: 40000
+            }
+        };
+        
+        function loadScenario(name) {
+            const s = scenarios[name];
+            
+            // 設定地點和空間類型
+            document.getElementById('locationArea').value = s.location;
+            document.getElementById('spaceType').value = s.spaceType;
+            updateLocationData();
+            
+            // 設定其他參數
+            document.getElementById('dailyOrders').value = s.dailyOrders;
+            document.getElementById('avgPrice').value = s.avgPrice;
+            document.getElementById('deliveryRatio').value = s.deliveryRatio;
+            document.getElementById('foodCostRatio').value = s.foodCostRatio;
+            document.getElementById('utilization').value = s.utilization;
+            document.getElementById('wokCount').value = s.wokCount;
+            document.getElementById('hoursPerDay').value = s.hoursPerDay || 12;
+            document.getElementById('capex').value = s.capex;
+            document.getElementById('brandingCost').value = s.brandingCost || 120000;
+            document.getElementById('monthlyMarketing').value = s.monthlyMarketing || 45000;
+            document.getElementById('packagingCost').value = 6;
+            document.getElementById('pricingStrategy').value = 'custom';
+            document.getElementById('marketingPhase').value = 'custom';
+            calculate();
+        }
+        
+        function formatNumber(num) {
+            return num.toLocaleString('zh-TW');
+        }
+        
+        function calculate() {
+            // 讀取參數
+            const space = parseInt(document.getElementById('space').value);
+            const rentPerPing = parseInt(document.getElementById('rentPerPing').value);
+            const wokCount = parseInt(document.getElementById('wokCount').value);
+            const cookTime = parseFloat(document.getElementById('cookTime').value);
+            const hoursPerDay = parseInt(document.getElementById('hoursPerDay').value);
+            const utilization = parseInt(document.getElementById('utilization').value);
+            const dailyOrders = parseInt(document.getElementById('dailyOrders').value);
+            const avgPrice = parseInt(document.getElementById('avgPrice').value);
+            const deliveryRatio = parseInt(document.getElementById('deliveryRatio').value);
+            const daysPerMonth = parseInt(document.getElementById('daysPerMonth').value);
+            const foodCostRatio = parseInt(document.getElementById('foodCostRatio').value);
+            const platformFee = parseInt(document.getElementById('platformFee').value);
+            const packagingCost = parseInt(document.getElementById('packagingCost').value);
+            const capex = parseInt(document.getElementById('capex').value);
+            
+            // 更新顯示值
+            document.getElementById('spaceValue').textContent = space;
+            document.getElementById('rentPerPingValue').textContent = formatNumber(rentPerPing);
+            document.getElementById('wokCountValue').textContent = wokCount;
+            document.getElementById('cookTimeValue').textContent = cookTime;
+            document.getElementById('hoursPerDayValue').textContent = hoursPerDay;
+            
+            // 24H 營業提示
+            const hours24Note = document.getElementById('hours24Note');
+            if (hoursPerDay >= 20) {
+                hours24Note.innerHTML = '💡 全自動優勢：24H 營業無加班費！';
+                hours24Note.style.color = 'var(--success)';
+            } else if (hoursPerDay >= 16) {
+                hours24Note.innerHTML = '⏰ 延長營業可提升產能利用率';
+                hours24Note.style.color = '#f39c12';
+            } else {
+                hours24Note.innerHTML = '';
+            }
+            document.getElementById('utilizationValue').textContent = utilization;
+            document.getElementById('dailyOrdersValue').textContent = dailyOrders;
+            document.getElementById('avgPriceValue').textContent = avgPrice;
+            document.getElementById('deliveryRatioValue').textContent = deliveryRatio;
+            document.getElementById('daysPerMonthValue').textContent = daysPerMonth;
+            document.getElementById('foodCostRatioValue').textContent = foodCostRatio;
+            document.getElementById('platformFeeValue').textContent = platformFee;
+            document.getElementById('packagingCostValue').textContent = packagingCost;
+            document.getElementById('capexValue').textContent = (capex / 10000).toFixed(0) + '萬';
+            
+            // 計算
+            const monthlyRevenue = dailyOrders * avgPrice * daysPerMonth;
+            const foodCost = monthlyRevenue * (foodCostRatio / 100);
+            const platformCost = monthlyRevenue * (deliveryRatio / 100) * (platformFee / 100);
+            const packagingTotal = dailyOrders * daysPerMonth * packagingCost;
+            
+            const rent = space * rentPerPing;
+            const utilities = 20000;
+            const maintenance = capex * 0.005;
+            const labor = 20000;  // 補料人力
+            const insurance = 3000;
+            const misc = 3000;
+            const internet = 2000;  // 網路/IoT
+            const monthlyMarketing = parseInt(document.getElementById('monthlyMarketing').value);
+            const brandingCost = parseInt(document.getElementById('brandingCost').value);
+            const fixedCosts = rent + utilities + maintenance + labor + insurance + misc + internet + monthlyMarketing;
+            
+            // 更新行銷顯示
+            document.getElementById('monthlyMarketingValue').textContent = (monthlyMarketing / 10000).toFixed(1) + '萬';
+            document.getElementById('brandingCostValue').textContent = (brandingCost / 10000).toFixed(0) + '萬';
+            
+            // 總投資包含品牌建立費
+            const totalCapex = capex + brandingCost;
+            
+            const grossProfit = monthlyRevenue - foodCost - platformCost - packagingTotal;
+            const netProfit = grossProfit - fixedCosts;
+            const profitMargin = (netProfit / monthlyRevenue * 100);
+            
+            // 產能計算
+            const maxCapacityPerDay = Math.floor((hoursPerDay * 60 / cookTime) * wokCount);
+            const actualUtilizationRate = (dailyOrders / maxCapacityPerDay * 100);
+            
+            // 損益平衡
+            const contributionPerOrder = avgPrice - (avgPrice * foodCostRatio / 100) - (avgPrice * deliveryRatio / 100 * platformFee / 100) - packagingCost;
+            const breakevenOrders = Math.ceil(fixedCosts / contributionPerOrder / daysPerMonth);
+            
+            // 回本期（使用總投資）
+            const paybackMonths = netProfit > 0 ? Math.ceil(totalCapex / netProfit) : Infinity;
+            
+            // 更新結果
+            document.getElementById('monthlyRevenue').textContent = '$' + formatNumber(monthlyRevenue);
+            document.getElementById('grossProfit').textContent = '$' + formatNumber(Math.round(grossProfit));
+            document.getElementById('fixedCosts').textContent = '$' + formatNumber(Math.round(fixedCosts));
+            
+            const netProfitEl = document.getElementById('netProfit');
+            netProfitEl.textContent = '$' + formatNumber(Math.round(netProfit));
+            netProfitEl.className = 'result-value ' + (netProfit >= 0 ? 'positive' : 'negative');
+            
+            const profitMarginEl = document.getElementById('profitMargin');
+            profitMarginEl.textContent = profitMargin.toFixed(1) + '%';
+            profitMarginEl.className = 'result-value ' + (profitMargin >= 0 ? 'positive' : 'negative');
+            
+            document.getElementById('maxCapacity').textContent = maxCapacityPerDay + ' 單';
+            document.getElementById('actualUtilization').textContent = actualUtilizationRate.toFixed(1) + '%';
+            document.getElementById('breakeven').textContent = breakevenOrders + ' 單/天';
+            document.getElementById('contributionPerOrder').textContent = '$' + contributionPerOrder.toFixed(0);
+            document.getElementById('paybackPeriod').textContent = paybackMonths === Infinity ? '無法回本' : paybackMonths + ' 個月';
+            
+            // 更新長條圖
+            const maxBarValue = monthlyRevenue;
+            document.getElementById('foodCostBar').style.width = (foodCost / maxBarValue * 100) + '%';
+            document.getElementById('foodCostBar').textContent = '$' + formatNumber(Math.round(foodCost));
+            
+            document.getElementById('platformFeeBar').style.width = (platformCost / maxBarValue * 100) + '%';
+            document.getElementById('platformFeeBar').textContent = '$' + formatNumber(Math.round(platformCost));
+            
+            document.getElementById('packagingBar').style.width = (packagingTotal / maxBarValue * 100) + '%';
+            document.getElementById('packagingBar').textContent = '$' + formatNumber(Math.round(packagingTotal));
+            
+            document.getElementById('fixedCostBar').style.width = (fixedCosts / maxBarValue * 100) + '%';
+            document.getElementById('fixedCostBar').textContent = '$' + formatNumber(Math.round(fixedCosts));
+            
+            const profitBarWidth = Math.abs(netProfit) / maxBarValue * 100;
+            const profitBar = document.getElementById('profitBar');
+            profitBar.style.width = profitBarWidth + '%';
+            profitBar.style.background = netProfit >= 0 ? '#2ecc71' : '#e74c3c';
+            profitBar.textContent = '$' + formatNumber(Math.round(netProfit));
+            
+            // 更新損益平衡指示
+            const indicator = document.getElementById('breakevenIndicator');
+            const message = document.getElementById('breakevenMessage');
+            
+            if (dailyOrders >= breakevenOrders) {
+                indicator.className = 'breakeven-indicator profitable';
+                document.querySelector('.emoji-big').textContent = '✅';
+                const surplus = dailyOrders - breakevenOrders;
+                message.textContent = `超過損益平衡 ${surplus} 單/天，持續獲利中！`;
+            } else {
+                indicator.className = 'breakeven-indicator loss';
+                document.querySelector('.emoji-big').textContent = '⚠️';
+                const deficit = breakevenOrders - dailyOrders;
+                message.textContent = `距離損益平衡還差 ${deficit} 單/天`;
+            }
+        }
+        
+        // 初始化
+        updateLocationData();
+        calculate();
+    </script>
+</body>
+</html>
