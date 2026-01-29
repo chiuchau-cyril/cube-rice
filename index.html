@@ -871,6 +871,193 @@
         
         <p>我們相信，這個模式一旦在單店驗證成功，將具備<strong>快速複製</strong>的潛力，成為台灣餐飲數位轉型的標竿。</p>
         
+        <!-- 互動式計算器 -->
+        <h1 class="section-break">互動式財務計算器</h1>
+        
+        <p>調整參數，即時模擬不同情境下的營運狀況：</p>
+        
+        <div id="calculator" style="background: #1a1a2e; padding: 30px; border-radius: 12px; margin: 30px 0; color: #eaeaea;">
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <button onclick="loadScenario('conservative')" style="padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; background: #3498db; color: white;">📉 保守</button>
+                <button onclick="loadScenario('baseline')" style="padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; background: #ff6b35; color: white;">📊 基準</button>
+                <button onclick="loadScenario('optimistic')" style="padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; background: #2ecc71; color: white;">📈 樂觀</button>
+                <button onclick="loadScenario('fullAuto24h')" style="padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; background: #9b59b6; color: white;">🤖 24H全自動</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                
+                <!-- 銷售參數 -->
+                <div style="background: #16213e; padding: 20px; border-radius: 10px;">
+                    <h3 style="color: #ff6b35; margin-bottom: 15px; font-size: 1.1em;">💰 銷售參數</h3>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #aaa;">日均訂單數</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="calc-orders" min="50" max="300" value="150" oninput="calcUpdate()" style="flex: 1;">
+                            <span id="calc-orders-val" style="min-width: 60px; text-align: right; color: #ff6b35; font-weight: bold;">150 單</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #aaa;">平均客單價</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="calc-price" min="70" max="130" value="95" oninput="calcUpdate()" style="flex: 1;">
+                            <span id="calc-price-val" style="min-width: 60px; text-align: right; color: #ff6b35; font-weight: bold;">$95</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #aaa;">日營業時數</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="calc-hours" min="8" max="24" value="16" oninput="calcUpdate()" style="flex: 1;">
+                            <span id="calc-hours-val" style="min-width: 60px; text-align: right; color: #ff6b35; font-weight: bold;">16 小時</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 成本參數 -->
+                <div style="background: #16213e; padding: 20px; border-radius: 10px;">
+                    <h3 style="color: #ff6b35; margin-bottom: 15px; font-size: 1.1em;">📦 成本參數</h3>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #aaa;">月租金</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="calc-rent" min="8000" max="25000" step="1000" value="12000" oninput="calcUpdate()" style="flex: 1;">
+                            <span id="calc-rent-val" style="min-width: 70px; text-align: right; color: #ff6b35; font-weight: bold;">$12,000</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #aaa;">食材成本率</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="calc-food" min="15" max="30" value="20" oninput="calcUpdate()" style="flex: 1;">
+                            <span id="calc-food-val" style="min-width: 60px; text-align: right; color: #ff6b35; font-weight: bold;">20%</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #aaa;">平台抽成</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="calc-platform" min="25" max="35" value="30" oninput="calcUpdate()" style="flex: 1;">
+                            <span id="calc-platform-val" style="min-width: 60px; text-align: right; color: #ff6b35; font-weight: bold;">30%</span>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- 結果顯示 -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                <div style="background: linear-gradient(135deg, #16213e, #1a1a3e); border: 2px solid #ff6b35; padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="color: #aaa; font-size: 0.9em;">月營收</div>
+                    <div id="calc-revenue" style="color: #ff6b35; font-size: 1.8em; font-weight: bold;">$427,500</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #16213e, #1a1a3e); border: 2px solid #2ecc71; padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="color: #aaa; font-size: 0.9em;">月淨利</div>
+                    <div id="calc-profit" style="color: #2ecc71; font-size: 1.8em; font-weight: bold;">$59,900</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #16213e, #1a1a3e); border: 2px solid #3498db; padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="color: #aaa; font-size: 0.9em;">損益兩平</div>
+                    <div id="calc-breakeven" style="color: #3498db; font-size: 1.8em; font-weight: bold;">105 單/天</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #16213e, #1a1a3e); border: 2px solid #9b59b6; padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="color: #aaa; font-size: 0.9em;">回本期</div>
+                    <div id="calc-payback" style="color: #9b59b6; font-size: 1.8em; font-weight: bold;">2.8 年</div>
+                </div>
+            </div>
+            
+            <!-- 損益平衡指示 -->
+            <div id="calc-status" style="text-align: center; padding: 20px; margin-top: 20px; border-radius: 8px; background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71;">
+                <div style="font-size: 2em; margin-bottom: 10px;">✅</div>
+                <div id="calc-status-text">超過損益兩平 45 單/天，持續獲利中！</div>
+            </div>
+            
+        </div>
+        
+        <script>
+            function calcUpdate() {
+                const orders = parseInt(document.getElementById('calc-orders').value);
+                const price = parseInt(document.getElementById('calc-price').value);
+                const hours = parseInt(document.getElementById('calc-hours').value);
+                const rent = parseInt(document.getElementById('calc-rent').value);
+                const foodRatio = parseInt(document.getElementById('calc-food').value);
+                const platformRatio = parseInt(document.getElementById('calc-platform').value);
+                
+                // 更新顯示
+                document.getElementById('calc-orders-val').textContent = orders + ' 單';
+                document.getElementById('calc-price-val').textContent = '$' + price;
+                document.getElementById('calc-hours-val').textContent = hours + ' 小時';
+                document.getElementById('calc-rent-val').textContent = '$' + rent.toLocaleString();
+                document.getElementById('calc-food-val').textContent = foodRatio + '%';
+                document.getElementById('calc-platform-val').textContent = platformRatio + '%';
+                
+                // 計算
+                const daysPerMonth = 30;
+                const monthlyRevenue = orders * price * daysPerMonth;
+                const foodCost = monthlyRevenue * (foodRatio / 100);
+                const platformCost = monthlyRevenue * 0.9 * (platformRatio / 100); // 90% 外送
+                const packagingCost = orders * daysPerMonth * 6;
+                
+                // 固定成本
+                const fixedCosts = rent + 20000 + 10000 + 20000 + 3000 + 3000 + 2000 + 45000; // 租金+水電+維護+人力+保險+雜支+網路+行銷
+                
+                const grossProfit = monthlyRevenue - foodCost - platformCost - packagingCost;
+                const netProfit = grossProfit - fixedCosts;
+                
+                // 損益兩平
+                const contributionPerOrder = price - (price * foodRatio / 100) - (price * 0.9 * platformRatio / 100) - 6;
+                const breakeven = Math.ceil(fixedCosts / contributionPerOrder / daysPerMonth);
+                
+                // 回本期
+                const capex = 2020000;
+                const paybackMonths = netProfit > 0 ? capex / netProfit : Infinity;
+                const paybackYears = paybackMonths / 12;
+                
+                // 更新結果
+                document.getElementById('calc-revenue').textContent = '$' + monthlyRevenue.toLocaleString();
+                document.getElementById('calc-profit').textContent = '$' + Math.round(netProfit).toLocaleString();
+                document.getElementById('calc-profit').style.color = netProfit >= 0 ? '#2ecc71' : '#e74c3c';
+                document.getElementById('calc-breakeven').textContent = breakeven + ' 單/天';
+                document.getElementById('calc-payback').textContent = paybackMonths === Infinity ? '無法回本' : paybackYears.toFixed(1) + ' 年';
+                
+                // 狀態
+                const statusDiv = document.getElementById('calc-status');
+                const statusText = document.getElementById('calc-status-text');
+                if (orders >= breakeven) {
+                    statusDiv.style.background = 'rgba(46, 204, 113, 0.2)';
+                    statusDiv.style.borderColor = '#2ecc71';
+                    statusDiv.querySelector('div').textContent = '✅';
+                    statusText.textContent = '超過損益兩平 ' + (orders - breakeven) + ' 單/天，持續獲利中！';
+                } else {
+                    statusDiv.style.background = 'rgba(231, 76, 60, 0.2)';
+                    statusDiv.style.borderColor = '#e74c3c';
+                    statusDiv.querySelector('div').textContent = '⚠️';
+                    statusText.textContent = '距離損益兩平還差 ' + (breakeven - orders) + ' 單/天';
+                }
+            }
+            
+            function loadScenario(name) {
+                const scenarios = {
+                    conservative: { orders: 100, price: 85, hours: 12, rent: 10000, food: 22, platform: 30 },
+                    baseline: { orders: 150, price: 95, hours: 16, rent: 12000, food: 20, platform: 30 },
+                    optimistic: { orders: 200, price: 100, hours: 20, rent: 15000, food: 20, platform: 28 },
+                    fullAuto24h: { orders: 250, price: 95, hours: 24, rent: 12000, food: 20, platform: 28 }
+                };
+                const s = scenarios[name];
+                document.getElementById('calc-orders').value = s.orders;
+                document.getElementById('calc-price').value = s.price;
+                document.getElementById('calc-hours').value = s.hours;
+                document.getElementById('calc-rent').value = s.rent;
+                document.getElementById('calc-food').value = s.food;
+                document.getElementById('calc-platform').value = s.platform;
+                calcUpdate();
+            }
+            
+            // 初始化
+            calcUpdate();
+        </script>
+        
         <div style="text-align: center; margin-top: 60px; padding: 40px; background: var(--light); border-radius: 10px;">
             <h3 style="color: var(--primary);">感謝您的閱讀</h3>
             <p>期待有機會進一步討論合作</p>
